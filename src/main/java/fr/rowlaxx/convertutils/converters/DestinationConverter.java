@@ -3,24 +3,24 @@ package fr.rowlaxx.convertutils.converters;
 import fr.rowlaxx.convertutils.Convert;
 import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
-import fr.rowlaxx.utils.generic.destination.Destination;
+import fr.rowlaxx.utils.generic.clazz.GenericClass;
 
 @SuppressWarnings("rawtypes")
 @Return(canReturnInnerType = false)
-public class DestinationConverter extends SimpleConverter<Destination>{
+public class DestinationConverter extends SimpleConverter<GenericClass>{
 
 	public DestinationConverter() {
-		super(Destination.class);
+		super(GenericClass.class);
 	}
 	
 	@Convert
-	public Destination<?> toDestination(String string) throws ClassNotFoundException{
-		return Destination.parse(string);
+	public GenericClass<?> toDestination(String string) throws ClassNotFoundException{
+		return GenericClass.parse(string);
 	}
 	
 	@Convert
-	public Destination<?> toDestination(Class<?> clazz){
-		return Destination.from(clazz);
+	public GenericClass<?> toDestination(Class<?> clazz){
+		return GenericClass.from(clazz);
 	}
 
 }

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import fr.rowlaxx.utils.generic.destination.Destination;
+import fr.rowlaxx.utils.generic.clazz.GenericClass;
 
 public class Converter {
 
@@ -13,15 +13,15 @@ public class Converter {
 	Converter(){}
 	
 	public <T, E extends T> E convert(Object object, Class<T> destination) {
-		return convert(object, Destination.from(destination));
+		return convert(object, GenericClass.from(destination));
 	}
 	
-	public <T, E extends T> E convert(Object object, Destination<T> destination) {
+	public <T, E extends T> E convert(Object object, GenericClass<T> destination) {
 		if (object == null)
 			return null;
 		Objects.requireNonNull(destination, "destination may not be null.");
 		
-		Class<?> clazz = destination.getDestinationClass();
+		Class<?> clazz = destination.getType();
 		do {
 			try {
 				return processOne(object, destination, converters.get(clazz));
@@ -38,14 +38,14 @@ public class Converter {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final <T, E extends T> E processOne(Object object, Destination<T> destination, List<SimpleConverter<?>> list) {
+	private static final <T, E extends T> E processOne(Object object, GenericClass<T> destination, List<SimpleConverter<?>> list) {
 		if (list == null)
 			throw new ConverterException("List is null.");
 		
 		for (SimpleConverter<?> converter : list) {
 			if (!converter.canReturnInnerType() && !destination.is(converter.getConvertClass()))
 				continue;
-			if (converter.canReturnInnerType() && !converter.getConvertClass().isAssignableFrom(destination.getDestinationClass()))
+			if (converter.canReturnInnerType() && !converter.getConvertClass().isAssignableFrom(destination.getType()))
 				continue;
 			
 			try {

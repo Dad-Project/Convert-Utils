@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
 import fr.rowlaxx.utils.generic.ReflectionUtils;
-import fr.rowlaxx.utils.generic.destination.Destination;
+import fr.rowlaxx.utils.generic.clazz.GenericClass;
 
 class ConvertMethod {
 
@@ -17,7 +17,7 @@ class ConvertMethod {
 	private final Method method;
 	private final boolean acceptInnerType;
 	private final int priority;
-	private final Destination<?> firstParam;
+	private final GenericClass<?> firstParam;
 	
 	//Constructeurs
 	ConvertMethod(Method method){
@@ -25,7 +25,7 @@ class ConvertMethod {
 		final Convert convert = method.getAnnotation(Convert.class);
 		this.acceptInnerType = convert.acceptInnerType();
 		this.priority = convert.priority();
-		this.firstParam = Destination.from(ReflectionUtils.toWrapper(method.getParameterTypes()[0]));
+		this.firstParam = GenericClass.from(ReflectionUtils.toWrapper(method.getParameterTypes()[0]));
 	}
 
 	//Delegate method
@@ -130,7 +130,7 @@ class ConvertMethod {
 		return method.isAccessible();
 	}
 	
-	public Destination<?> getFirstParameter() {
+	public GenericClass<?> getFirstParameter() {
 		return firstParam;
 	}
 	

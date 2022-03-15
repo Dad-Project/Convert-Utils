@@ -8,7 +8,7 @@ import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
 import fr.rowlaxx.convertutils.annotations.EnumMatcher;
 import fr.rowlaxx.utils.generic.ReflectionUtils;
-import fr.rowlaxx.utils.generic.destination.Destination;
+import fr.rowlaxx.utils.generic.clazz.GenericClass;
 
 @SuppressWarnings("rawtypes")
 @Return(canReturnInnerType = true)
@@ -20,7 +20,7 @@ public class EnumConverter extends SimpleConverter<Enum>{
 	}
 	
 	@Convert
-	public <T extends Enum<T>> T toEnum(String string, Destination<T> destination) {
+	public <T extends Enum<T>> T toEnum(String string, GenericClass<T> destination) {
 		
 		//On regarde pour l'annotation ValueMatcher
 		EnumMatcher enumMatcher;	

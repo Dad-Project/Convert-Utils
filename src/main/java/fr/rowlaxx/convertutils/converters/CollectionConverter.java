@@ -11,7 +11,7 @@ import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
 import fr.rowlaxx.utils.IterableArray;
 import fr.rowlaxx.utils.generic.ReflectionUtils;
-import fr.rowlaxx.utils.generic.destination.Destination;
+import fr.rowlaxx.utils.generic.clazz.GenericClass;
 
 @SuppressWarnings("rawtypes")
 @Return(canReturnInnerType = true)
@@ -22,13 +22,13 @@ public class CollectionConverter extends SimpleConverter<Collection> {
 	}
 	
 	@Convert
-	public <T> Collection<T> toCollection(T[] array, Destination<? extends Collection> destination){
+	public <T> Collection<T> toCollection(T[] array, GenericClass<? extends Collection> destination){
 		return toCollection(new IterableArray<T>(array), destination);
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Convert
-	public <T> Collection<T> toCollection(Iterable<?> iterable, Destination<? extends Collection> destination){		
+	public <T> Collection<T> toCollection(Iterable<?> iterable, GenericClass<? extends Collection> destination){		
 		Collection<T> list;
 		
 		if (destination.getDestinationClass() == List.class)

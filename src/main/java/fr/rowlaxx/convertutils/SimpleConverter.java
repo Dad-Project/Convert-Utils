@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import fr.rowlaxx.utils.generic.ReflectionUtils;
-import fr.rowlaxx.utils.generic.destination.Destination;
+import fr.rowlaxx.utils.generic.clazz.GenericClass;
 
 public abstract class SimpleConverter<T> {
 
@@ -34,7 +34,7 @@ public abstract class SimpleConverter<T> {
 			if (method.getParameterCount() == 2) {
 				if (!canReturnInnerType)
 					throw new ConverterException("A Convert method of a SimpleConverter that return no inner type must have 1 parameter.");
-				if (method.getParameterTypes()[1] != Destination.class)
+				if (method.getParameterTypes()[1] != GenericClass.class)
 					throw new ConverterException("The second parameter must be a Destination.");
 			}
 
@@ -61,7 +61,7 @@ public abstract class SimpleConverter<T> {
 		return (E) convert(object, null);
 	}
 
-	public final <E extends T> E convert(Object object, Destination<E> destination) {
+	public final <E extends T> E convert(Object object, GenericClass<E> destination) {
 		if (object == null)
 			return null;
 
@@ -90,7 +90,7 @@ public abstract class SimpleConverter<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private final <E extends T> E processOne(Object object, Destination<E> destination, ConvertMethod method) {
+	private final <E extends T> E processOne(Object object, GenericClass<E> destination, ConvertMethod method) {
 		if (method == null)
 			return null;
 		
