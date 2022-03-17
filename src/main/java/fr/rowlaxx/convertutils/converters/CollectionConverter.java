@@ -1,5 +1,6 @@
 package fr.rowlaxx.convertutils.converters;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,6 +11,7 @@ import fr.rowlaxx.convertutils.ConvertMethod;
 import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
 import fr.rowlaxx.utils.IterableArray;
+import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
 
 @SuppressWarnings("rawtypes")
@@ -27,19 +29,41 @@ public class CollectionConverter extends SimpleConverter<Collection> {
 	
 	@SuppressWarnings("unchecked")
 	@ConvertMethod
-	public <T> Collection<T> toCollection(Iterable<?> iterable, Class<? extends Collection> destination){		
-		Collection<T> list;
+	public <T> Collection<T> toCollection(Iterable<T> iterable, Class<? extends Collection> destination){		
+		Collection<T> collection;
 		
 		if (destination == List.class)
-			list = new ArrayList<T>();
+			collection = new ArrayList<T>();
 		if (destination == Set.class)
-			list = new HashSet<T>();
+			collection = new HashSet<T>();
 		
-		list = ReflectionUtils.tryInstanciate(destination);
-		for (Object e : iterable)
-			list.add( (T) getConverter().convert(e, destination.getGenericParameter(0)) );
+		collection = ReflectionUtils.tryInstanciate(destination);
 		
-		return list;
+		for (T e : iterable)
+			collection.add(e);
+		
+		return collection;
+	}
+	
+	public <T> Collection<T> toCollection(T[] array, ParameterizedClass clazz){
+		return toCollection(new IterableArray<T>(array), clazz);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> Collection<T> toCollection(Iterable<?> iterable, ParameterizedClass clazz){
+		Collection<T> collection;
+		
+		if (clazz.getRawType() == List.class)
+			collection = new ArrayList<T>();
+		if (clazz.getRawType() == Set.class)
+			collection = new HashSet<T>();
+		
+		Type type = clazz.getActualTypeArgument(0);
+		collection = (Collection<T>) ReflectionUtils.tryInstanciate(clazz.getRawType());
+		for (Object p : iterable)
+			collection.add( (T) getConverter().convert(p, type) );
+		
+		return collection;
 	}
 
 }

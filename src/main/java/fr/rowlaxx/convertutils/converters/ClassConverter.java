@@ -1,9 +1,9 @@
 package fr.rowlaxx.convertutils.converters;
 
-import fr.rowlaxx.convertutils.Convert;
+import fr.rowlaxx.convertutils.ConvertMethod;
 import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
-import fr.rowlaxx.utils.generic.clazz.GenericClass;
+import fr.rowlaxx.utils.ParameterizedClass;
 
 @SuppressWarnings("rawtypes")
 @Return(canReturnInnerType = false)
@@ -13,13 +13,13 @@ public class ClassConverter extends SimpleConverter<Class> {
 		super(Class.class);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public Class<?> toClass(String string) throws ClassNotFoundException {
 		return Class.forName(string);
 	}
 	
-	@Convert
-	public Class<?> toClass(GenericClass<?> destination){
-		return destination.getDestinationClass();
+	@ConvertMethod
+	public Class<?> toClass(ParameterizedClass destination){
+		return destination.getRawType();
 	}
 }

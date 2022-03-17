@@ -2,11 +2,13 @@ package fr.rowlaxx.convertutils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeMap;
 
+import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
 
 public abstract class SimpleConverter<T> {
@@ -81,20 +83,21 @@ public abstract class SimpleConverter<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final <E extends T> E convert(Object object, Class<E> destination) {
+	public final <E extends T> E convert(Object object, Type destination) {
 		if (object == null)
 			return null;
 
 		if (destination == null)
 			destination = (Class<E>)getDestinationClass();
 		
-		if (!canReturnInnerType) {
-			if (getDestinationClass() != destination)
-				throw new ConverterException("This instance cannot return other destination than " + getDestinationClass());
+		final Class<?> temp = destination instanceof Class ? (Class<?>)destination : ((ParameterizedClass)destination).getRawType();
+		if (canReturnInnerType()) {
+			if (!getDestinationClass().isAssignableFrom(temp))
+				throw new ConverterException(destination + " do not inherit " + getDestinationClass());
 		}
 		else {
-			if (!getDestinationClass().isAssignableFrom(destination))
-				throw new ConverterException(destination + " do not inherit from " + getDestinationClass());
+			if (temp != getDestinationClass())
+				throw new ConverterException("the destination is not " + getDestinationClass());
 		}
 		
 		E result;
@@ -120,13 +123,17 @@ public abstract class SimpleConverter<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private final <E extends T> E invoke(ConvertMethodWrapper wrapper, Object object, Class<E> destination) {
+	private final <E extends T> E invoke(ConvertMethodWrapper wrapper, Object object, Type destination) {
+		if (wrapper == null)
+			return null;
+		
 		try {
 			if (wrapper.getParameterCount() == 2)
 				return (E) wrapper.invoke(this, object, destination);
 			else
 				return (E) wrapper.invoke(this, object);
 		} catch (InvocationTargetException e) {
+			e.getCause().printStackTrace();
 			return null;
 		} catch (IllegalAccessException e) {
 			return null;

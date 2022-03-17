@@ -1,9 +1,12 @@
 package fr.rowlaxx.convertutils;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+
+import fr.rowlaxx.utils.ParameterizedClass;
 
 public class Converter {
 
@@ -36,20 +39,30 @@ public class Converter {
 	
 	//Convert
 	public <T, E extends T> E convert(Object object, Class<T> destination) {
+		return convert(object, (Type)destination);
+	}
+	
+	public <T, E extends T> E convert(Object object, Type destination) {
 		Objects.requireNonNull(destination, "destination may not be null.");
-
+		
+		Class<?> temp;
+		if (destination instanceof Class)
+			temp = (Class<?>)destination;
+		else if (destination instanceof ParameterizedClass)
+			temp = ((ParameterizedClass) destination).getRawType();
+		else
+			throw new IllegalArgumentException("Unknow type : " + destination.getClass());
+		
 		if (object == null)
 			return null;
 		
-		Class<?> temp = destination;
 		Class<?>[] interfaces;
 		E converted;
 		
 		while (temp != Object.class) {
 			interfaces = temp.getInterfaces();
 			
-			converted = processOne(object, destination, converters.get(temp));
-			if (converted != null)
+			if ( (converted = processOne(object, destination, converters.get(temp))) != null)
 				return converted;
 			
 			for(Class<?> _interface : interfaces)
@@ -63,19 +76,16 @@ public class Converter {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final <T, E extends T> E processOne(Object object, Class<T> destination, List<SimpleConverter<?>> list) {
-		for (SimpleConverter<?> converter : list) {
-			if (!converter.canReturnInnerType() && destination != converter.getDestinationClass())
-				continue;
-			if (converter.canReturnInnerType() && !converter.getDestinationClass().isAssignableFrom(destination))
-				continue;
-			
+	private static final <T, E extends T> E processOne(Object object, Type destination, List<SimpleConverter<?>> list) {
+		if (list == null)
+			return null;
+		
+		for (SimpleConverter<?> converter : list)
 			try {
 				return (E) ((SimpleConverter<T>)converter).convert(object, destination);
 			}catch(ConverterException e) {
 				continue;
 			}
-		}
 		
 		return null;
 	}
