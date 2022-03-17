@@ -1,51 +1,73 @@
 package fr.rowlaxx.convertutils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import fr.rowlaxx.utils.generic.clazz.GenericClass;
-
 public class Converter {
 
-	final HashMap<Class<?>, List<SimpleConverter<?>>> converters = new HashMap<>();
+	//Variables
+	private final HashMap<Class<?>, List<SimpleConverter<?>>> converters = new HashMap<>();
 	
+	//Constructeurs
 	Converter(){}
 	
-	public <T, E extends T> E convert(Object object, Class<T> destination) {
-		return convert(object, GenericClass.from(destination));
+	//Methodes
+	void addSimpleConverter(SimpleConverter<?> sc) {
+		Objects.requireNonNull(sc, "sc may not be null.");
+		
+		if (sc.hasConverterParent())
+			throw new ConverterException("This simple converter already has a parent converter.");
+		
+		List<SimpleConverter<?>> list;
+		Class<?> destination = sc.getDestinationClass();
+		
+		if ( (list = converters.get(destination)) == null )
+			converters.put(destination, list = new ArrayList<>());
+		
+		for(SimpleConverter<?> converter : list)
+			if (converter == sc)
+				return;
+		
+		sc.setConverter(this);
+		list.add(0, sc);
 	}
 	
-	public <T, E extends T> E convert(Object object, GenericClass<T> destination) {
+	//Convert
+	public <T, E extends T> E convert(Object object, Class<T> destination) {
+		Objects.requireNonNull(destination, "destination may not be null.");
+
 		if (object == null)
 			return null;
-		Objects.requireNonNull(destination, "destination may not be null.");
 		
-		Class<?> clazz = destination.getType();
-		do {
-			try {
-				return processOne(object, destination, converters.get(clazz));
-			}catch(ConverterException e) {}
-			
-			for (Class<?> _interface : clazz.getInterfaces())
-				try {
-					return processOne(object, destination, converters.get(_interface));
-				}catch(ConverterException e) {}
-			
-		}while((clazz = clazz.getSuperclass()) != null);
+		Class<?> temp = destination;
+		Class<?>[] interfaces;
+		E converted;
 		
-		throw new ConverterException("Unable to convert " + object.getClass() + " to " + destination);
+		while (temp != Object.class) {
+			interfaces = temp.getInterfaces();
+			
+			converted = processOne(object, destination, converters.get(temp));
+			if (converted != null)
+				return converted;
+			
+			for(Class<?> _interface : interfaces)
+				if ((converted = processOne(object, destination, converters.get(_interface))) != null)
+					return converted;
+			
+			temp = temp.getSuperclass();
+		}
+		
+		throw new ConverterException("Unable to convert " + object.getClass() + " to " + destination + " using this converter.");
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final <T, E extends T> E processOne(Object object, GenericClass<T> destination, List<SimpleConverter<?>> list) {
-		if (list == null)
-			throw new ConverterException("List is null.");
-		
+	private static final <T, E extends T> E processOne(Object object, Class<T> destination, List<SimpleConverter<?>> list) {
 		for (SimpleConverter<?> converter : list) {
-			if (!converter.canReturnInnerType() && !destination.is(converter.getConvertClass()))
+			if (!converter.canReturnInnerType() && destination != converter.getDestinationClass())
 				continue;
-			if (converter.canReturnInnerType() && !converter.getConvertClass().isAssignableFrom(destination.getType()))
+			if (converter.canReturnInnerType() && !converter.getDestinationClass().isAssignableFrom(destination))
 				continue;
 			
 			try {
@@ -54,9 +76,7 @@ public class Converter {
 				continue;
 			}
 		}
-		throw new ConverterException("Unable to convert " + object.getClass() + " to " + destination + " using this list.");
 		
+		return null;
 	}
-	
-	
 }

@@ -3,29 +3,47 @@ package fr.rowlaxx.convertutils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import fr.rowlaxx.utils.generic.ReflectionUtils;
-import fr.rowlaxx.utils.generic.clazz.GenericClass;
+import java.util.List;
+import java.util.Objects;
+import java.util.TreeMap;
+
+import fr.rowlaxx.utils.ReflectionUtils;
 
 public abstract class SimpleConverter<T> {
 
 	//Variables
-	Converter converter;
-	private final Class<T> convertClass;
+	private Converter converter;//Will be assigned when adding to a converter
+	
+	private final Class<T> destination;
 	private final boolean canReturnInnerType;
-	private final HashMap<Integer, HashMap<Class<?>, ConvertMethod>> methods = new HashMap<>();
+	private final TreeMap<Integer, HashMap<Class<?>, ConvertMethodWrapper>> methods;
 
 	//Constructeurs
-	protected SimpleConverter(Class<T> convertClass) {
+	protected SimpleConverter(Class<T> destination) {
+		Objects.requireNonNull(destination, "destination may not be null.");
+		
 		final Return r = getClass().getAnnotation(Return.class);
 		if (r == null)
 			throw new ConverterException("The simple converter class " + getClass() + " must implement the annotation Return.");
 
 		this.canReturnInnerType = r.canReturnInnerType();
-		this.convertClass = convertClass;
+		this.destination = destination;
+		this.methods = new TreeMap<>();
 		
-		HashMap<Class<?>, ConvertMethod> map;
-		ConvertMethod convertMethod;
-		for (Method method : ReflectionUtils.getAllMethods(getClass(), Convert.class)) {
+		//Vérification
+		initConvertMethods();
+	}
+	
+	//Verify
+	private void initConvertMethods() {
+		List<Method> convertMethods = ReflectionUtils.getAllMethods(getClass(), ConvertMethod.class);
+		ConvertMethodWrapper wrapper;
+		HashMap<Class<?>, ConvertMethodWrapper> map;
+		Class<?> firstParam;
+		int priority;
+		
+		for (Method method : convertMethods) {
+			//Vérification
 			if (method.getParameterCount() > 2)
 				throw new ConverterException("A Convert method must have a maximum of 2 parameters.");
 			if (method.getParameterCount() == 0)
@@ -33,90 +51,107 @@ public abstract class SimpleConverter<T> {
 
 			if (method.getParameterCount() == 2) {
 				if (!canReturnInnerType)
-					throw new ConverterException("A Convert method of a SimpleConverter that return no inner type must have 1 parameter.");
-				if (method.getParameterTypes()[1] != GenericClass.class)
-					throw new ConverterException("The second parameter must be a Destination.");
+					throw new ConverterException("A Convert method of a SimpleConverter that return no inner type must have exactly 1 parameter.");
+				if (method.getParameterTypes()[1] != Class.class)
+					throw new ConverterException("The second parameter must be a Class.");
+			}
+			
+			//Ajout
+			wrapper = new ConvertMethodWrapper(method);
+			priority = -wrapper.getPriority();
+			firstParam = wrapper.getParameterTypes()[0];
+			
+			//Creation de la hashmap
+			if ( (map = methods.get(priority)) == null )
+				methods.put(priority, map = new HashMap<>());
+							
+			if(map.containsKey(firstParam)) {
+				ConvertMethodWrapper another = map.get(firstParam);
+				throw new ConverterException("The methods " + wrapper.getName() + " and " + another.getName() + " have the same priority and parameters.");
 			}
 
-			convertMethod = new ConvertMethod(method);
-			if (methods.containsKey(-convertMethod.getPriority()))
-				map = methods.get(-convertMethod.getPriority());
-			else {
-				map = new HashMap<>();
-				methods.put(-convertMethod.getPriority(), map);
-			}
-
-			if(map.containsKey(convertMethod.getFirstParameterClass())) {
-				ConvertMethod another = map.get(convertMethod.getFirstParameterClass());
-				throw new ConverterException("The methods " + convertMethod.getName() + " and " + another.getName() + " have the same priority and parameters.");
-			}
-
-			map.put(convertMethod.getFirstParameterClass(), convertMethod);
+			map.put(firstParam, wrapper);
 		}
-
 	}
 
+	//Convert
 	@SuppressWarnings("unchecked")
 	public final <E extends T> E convert(Object object) {
 		return (E) convert(object, null);
 	}
 
-	public final <E extends T> E convert(Object object, GenericClass<E> destination) {
+	@SuppressWarnings("unchecked")
+	public final <E extends T> E convert(Object object, Class<E> destination) {
 		if (object == null)
 			return null;
 
-		if (!canReturnInnerType && destination != null)
-			if (destination.getDestinationClass() != this.convertClass)
-				throw new ConverterException("This instance cannot return child destinations.");
-
-		E e;
+		if (destination == null)
+			destination = (Class<E>)getDestinationClass();
+		
+		if (!canReturnInnerType) {
+			if (getDestinationClass() != destination)
+				throw new ConverterException("This instance cannot return other destination than " + getDestinationClass());
+		}
+		else {
+			if (!getDestinationClass().isAssignableFrom(destination))
+				throw new ConverterException(destination + " do not inherit from " + getDestinationClass());
+		}
+		
+		E result;
 		Class<?> clazz;
-		for (HashMap<Class<?>, ConvertMethod> map : this.methods.values()) {
+		Class<?>[] interfaces;
+		for (HashMap<Class<?>, ConvertMethodWrapper> map : this.methods.values()) {
 			clazz = object.getClass();
-			do {
-				e = processOne(object, destination, map.get(clazz));
-				if (e != null)
-					return e;
-
-				for (Class<?> _interface : clazz.getInterfaces()) {
-					e = processOne(object, destination, map.get(_interface));
-					if (e != null)
-						return e;
-				}
-			}while((clazz = clazz.getSuperclass()) != null);
+			
+			while(clazz != Object.class) {
+				if ( (result = invoke(map.get(clazz), object, destination)) != null)
+					return result;
+				
+				interfaces = clazz.getInterfaces();
+				for (Class<?> _interface : interfaces)
+					if ( (result = invoke(map.get(_interface), object, destination)) != null)
+						return result;
+				
+				clazz = clazz.getSuperclass();
+			}
 		}
 
 		throw new ConverterException("Unable to convert " + object.getClass() + " to " + destination);
 	}
 
 	@SuppressWarnings("unchecked")
-	private final <E extends T> E processOne(Object object, GenericClass<E> destination, ConvertMethod method) {
-		if (method == null)
-			return null;
-		
+	private final <E extends T> E invoke(ConvertMethodWrapper wrapper, Object object, Class<E> destination) {
 		try {
-			if (method.getParameterCount() == 2)
-				return (E) method.invoke(this, object, destination);
+			if (wrapper.getParameterCount() == 2)
+				return (E) wrapper.invoke(this, object, destination);
 			else
-				return (E) method.invoke(this, object);
+				return (E) wrapper.invoke(this, object);
 		} catch (InvocationTargetException e) {
 			return null;
 		} catch (IllegalAccessException e) {
-			e.printStackTrace();
 			return null;
 		}
 	}
+	
+	//Setters
+	final void setConverter(Converter converter) {
+		this.converter = converter;
+	}
 
 	//Getters
-	public boolean canReturnInnerType() {
+	public final boolean canReturnInnerType() {
 		return canReturnInnerType;
 	}
 	
-	public Converter getConverter() {
+	public final Converter getConverter() {
 		return converter;
 	}
 	
-	public Class<T> getConvertClass(){
-		return this.convertClass;
+	public final boolean hasConverterParent() {
+		return converter != null;
+	}
+	
+	public final Class<T> getDestinationClass(){
+		return this.destination;
 	}
 }

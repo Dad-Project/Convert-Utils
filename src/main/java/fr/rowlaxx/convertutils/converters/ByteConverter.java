@@ -3,7 +3,7 @@ package fr.rowlaxx.convertutils.converters;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import fr.rowlaxx.convertutils.Convert;
+import fr.rowlaxx.convertutils.ConvertMethod;
 import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
 
@@ -14,47 +14,47 @@ public class ByteConverter extends SimpleConverter<Byte> {
 		super(Byte.class);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(String string) {
 		return Byte.parseByte(string);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(short s) {
 		return (byte)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(int s) {
 		return (byte)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(long s) {
 		return (byte)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(float s) {
 		return (byte)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(double s) {
 		return (byte)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(boolean s) {
 		return (byte)(s ? 1 : 0);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(BigDecimal b) {
 		return b.byteValueExact();
 	}
 	
-	@Convert
+	@ConvertMethod
 	public byte toByte(BigInteger b) {
 		return b.byteValueExact();
 	}

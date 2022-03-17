@@ -3,7 +3,7 @@ package fr.rowlaxx.convertutils.converters;
 import java.util.Locale;
 import java.util.Objects;
 
-import fr.rowlaxx.convertutils.Convert;
+import fr.rowlaxx.convertutils.ConvertMethod;
 import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
 
@@ -19,22 +19,22 @@ public class StringConverter extends SimpleConverter<String> {
 	private int decimal = 8;
 	private Locale locale = Locale.US;
 	
-	@Convert
+	@ConvertMethod
 	public String toString(Object object) {
 		return Objects.toString(object);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public String toString(Class<?> clazz) {
 		return clazz.getName();
 	}
 	
-	@Convert
+	@ConvertMethod
 	public String toString(double d) {
 		return String.format(locale, "%."+decimal+"f", d);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public String toString(float f) {
 		return String.format(locale, "%."+decimal+"f", f);
 	}

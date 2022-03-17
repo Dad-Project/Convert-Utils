@@ -3,12 +3,11 @@ package fr.rowlaxx.convertutils.converters;
 import java.lang.reflect.Field;
 import java.util.Objects;
 
-import fr.rowlaxx.convertutils.Convert;
+import fr.rowlaxx.convertutils.ConvertMethod;
 import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
 import fr.rowlaxx.convertutils.annotations.EnumMatcher;
-import fr.rowlaxx.utils.generic.ReflectionUtils;
-import fr.rowlaxx.utils.generic.clazz.GenericClass;
+import fr.rowlaxx.utils.ReflectionUtils;
 
 @SuppressWarnings("rawtypes")
 @Return(canReturnInnerType = true)
@@ -19,13 +18,13 @@ public class EnumConverter extends SimpleConverter<Enum>{
 		super(Enum.class);
 	}
 	
-	@Convert
-	public <T extends Enum<T>> T toEnum(String string, GenericClass<T> destination) {
+	@ConvertMethod
+	public <T extends Enum<T>> T toEnum(String string, Class<T> destination) {
 		
 		//On regarde pour l'annotation ValueMatcher
 		EnumMatcher enumMatcher;	
 		String[] possibleNames;
-		for (Field field : destination.getDestinationClass().getDeclaredFields()) {
+		for (Field field : destination.getDeclaredFields()) {
 			if (!field.isEnumConstant())
 				continue;
 			
@@ -47,7 +46,7 @@ public class EnumConverter extends SimpleConverter<Enum>{
 		}
 		
 		//On regarde pour la methode toString
-		final T[] values = destination.getDestinationClass().getEnumConstants();
+		final T[] values = destination.getEnumConstants();
 		for (T value : values)
 			if (Objects.equals(value.toString(), string))
 				return value;

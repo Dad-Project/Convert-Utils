@@ -3,7 +3,7 @@ package fr.rowlaxx.convertutils.converters;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import fr.rowlaxx.convertutils.Convert;
+import fr.rowlaxx.convertutils.ConvertMethod;
 import fr.rowlaxx.convertutils.Return;
 import fr.rowlaxx.convertutils.SimpleConverter;
 
@@ -14,47 +14,47 @@ public class DoubleConverter extends SimpleConverter<Double> {
 		super(Double.class);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(String string) {
 		return Integer.parseInt(string);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(byte s) {
 		return (double)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(short s) {
 		return (double)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(long s) {
 		return (double)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(float s) {
 		return (double)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(int s) {
 		return (double)s;
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(boolean s) {
 		return (double)(s ? 1 : 0);
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(BigInteger b) {
 		return b.doubleValue();
 	}
 	
-	@Convert
+	@ConvertMethod
 	public double toDouble(BigDecimal b) {
 		return b.doubleValue();
 	}
