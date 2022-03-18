@@ -10,6 +10,7 @@ import fr.rowlaxx.convertutils.converters.FloatConverter;
 import fr.rowlaxx.convertutils.converters.IntegerConverter;
 import fr.rowlaxx.convertutils.converters.LongConverter;
 import fr.rowlaxx.convertutils.converters.MapConverter;
+import fr.rowlaxx.convertutils.converters.ParameterizedClassConverter;
 import fr.rowlaxx.convertutils.converters.ShortConverter;
 import fr.rowlaxx.convertutils.converters.StringConverter;
 
@@ -34,6 +35,7 @@ public class ConverterFactory {
 				.addSimpleConverter(new LongConverter())
 				.addSimpleConverter(new MapConverter())
 				.addSimpleConverter(new ShortConverter())
+				.addSimpleConverter(new ParameterizedClassConverter())
 				.addSimpleConverter(new StringConverter());
 				
 		return factory;
