@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 import fr.rowlaxx.utils.ParameterizedClass;
+import fr.rowlaxx.utils.ReflectionUtils;
 
 public class Converter {
 
@@ -42,24 +43,30 @@ public class Converter {
 		return convert(object, (Type)destination);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <T, E extends T> E convert(Object object, Type destination) {
 		Objects.requireNonNull(destination, "destination may not be null.");
+		if (object == null)
+			return null;
+		if (destination instanceof Class)
+			destination = ReflectionUtils.toWrapper((Class<?>)destination);
+		if (object.getClass() == destination)
+			return (E) object;
+		
 		
 		Class<?> temp;
-		if (destination instanceof Class)
+		if (destination instanceof Class)	
 			temp = (Class<?>)destination;
 		else if (destination instanceof ParameterizedClass)
 			temp = ((ParameterizedClass) destination).getRawType();
 		else
 			throw new IllegalArgumentException("Unknow type : " + destination.getClass());
-		
-		if (object == null)
-			return null;
+
 		
 		Class<?>[] interfaces;
 		E converted;
 		
-		while (temp != Object.class) {
+		while (temp != null) {
 			interfaces = temp.getInterfaces();
 			
 			if ( (converted = processOne(object, destination, converters.get(temp))) != null)

@@ -17,7 +17,7 @@ public class LongConverter extends SimpleConverter<Long> {
 	
 	@ConvertMethod
 	public long toLong(String string) {
-		return Integer.parseInt(string);
+		return Long.parseLong(string);
 	}
 	
 	@ConvertMethod

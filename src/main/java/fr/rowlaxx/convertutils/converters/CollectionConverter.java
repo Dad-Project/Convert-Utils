@@ -45,11 +45,13 @@ public class CollectionConverter extends SimpleConverter<Collection> {
 		return collection;
 	}
 	
+	@ConvertMethod
 	public <T> Collection<T> toCollection(T[] array, ParameterizedClass clazz){
 		return toCollection(new IterableArray<T>(array), clazz);
 	}
 	
 	@SuppressWarnings("unchecked")
+	@ConvertMethod
 	public <T> Collection<T> toCollection(Iterable<?> iterable, ParameterizedClass clazz){
 		Collection<T> collection;
 		
@@ -60,6 +62,14 @@ public class CollectionConverter extends SimpleConverter<Collection> {
 		
 		Type type = clazz.getActualTypeArgument(0);
 		collection = (Collection<T>) ReflectionUtils.tryInstanciate(clazz.getRawType());
+		if (collection == null)
+			if (clazz.getRawType() == List.class)
+				collection = new ArrayList<>();
+			else if (clazz.getRawType() == Set.class)
+				collection = new HashSet<>();
+			else 
+				throw new IllegalStateException("Unknow type " + clazz.getRawType());
+		
 		for (Object p : iterable)
 			collection.add( (T) getConverter().convert(p, type) );
 		

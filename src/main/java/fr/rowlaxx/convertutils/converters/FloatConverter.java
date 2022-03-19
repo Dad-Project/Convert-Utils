@@ -17,7 +17,7 @@ public class FloatConverter extends SimpleConverter<Float> {
 	
 	@ConvertMethod
 	public float toFloat(String string) {
-		return Integer.parseInt(string);
+		return Float.parseFloat(string);
 	}
 	
 	@ConvertMethod

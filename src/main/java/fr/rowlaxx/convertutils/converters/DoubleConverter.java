@@ -16,7 +16,7 @@ public class DoubleConverter extends SimpleConverter<Double> {
 	
 	@ConvertMethod
 	public double toDouble(String string) {
-		return Integer.parseInt(string);
+		return Double.parseDouble(string);
 	}
 	
 	@ConvertMethod

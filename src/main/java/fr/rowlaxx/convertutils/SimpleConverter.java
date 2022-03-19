@@ -3,6 +3,7 @@ package fr.rowlaxx.convertutils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -18,7 +19,7 @@ public abstract class SimpleConverter<T> {
 	
 	private final Class<T> destination;
 	private final boolean canReturnInnerType;
-	private final TreeMap<Integer, HashMap<Class<?>, ConvertMethodWrapper>> methods;
+	private final TreeMap<Integer, HashMap<Class<?>, List<ConvertMethodWrapper>>> methods;
 
 	//Constructeurs
 	protected SimpleConverter(Class<T> destination) {
@@ -40,7 +41,8 @@ public abstract class SimpleConverter<T> {
 	private void initConvertMethods() {
 		List<Method> convertMethods = ReflectionUtils.getAllMethods(getClass(), ConvertMethod.class);
 		ConvertMethodWrapper wrapper;
-		HashMap<Class<?>, ConvertMethodWrapper> map;
+		HashMap<Class<?>, List<ConvertMethodWrapper>> map;
+		List<ConvertMethodWrapper> list;
 		Class<?> firstParam;
 		int priority;
 		
@@ -54,8 +56,8 @@ public abstract class SimpleConverter<T> {
 			if (method.getParameterCount() == 2) {
 				if (!canReturnInnerType)
 					throw new ConverterException("A Convert method of a SimpleConverter that return no inner type must have exactly 1 parameter.");
-				if (method.getParameterTypes()[1] != Class.class)
-					throw new ConverterException("The second parameter must be a Class.");
+				if (method.getParameterTypes()[1] != Class.class && method.getParameterTypes()[1] != ParameterizedClass.class)
+					throw new ConverterException("The second parameter must be a Class or a ParameterizedClass.");
 			}
 			
 			//Ajout
@@ -63,16 +65,13 @@ public abstract class SimpleConverter<T> {
 			priority = -wrapper.getPriority();
 			firstParam = wrapper.getParameterTypes()[0];
 			
-			//Creation de la hashmap
 			if ( (map = methods.get(priority)) == null )
 				methods.put(priority, map = new HashMap<>());
 							
-			if(map.containsKey(firstParam)) {
-				ConvertMethodWrapper another = map.get(firstParam);
-				throw new ConverterException("The methods " + wrapper.getName() + " and " + another.getName() + " have the same priority and parameters.");
-			}
-
-			map.put(firstParam, wrapper);
+			if ( (list = map.get(firstParam)) == null)
+				map.put(firstParam, list = new ArrayList<>());
+			
+			list.add(wrapper);
 		}
 	}
 
@@ -86,7 +85,7 @@ public abstract class SimpleConverter<T> {
 	public final <E extends T> E convert(Object object, Type destination) {
 		if (object == null)
 			return null;
-
+		
 		if (destination == null)
 			destination = (Class<E>)getDestinationClass();
 		
@@ -103,10 +102,10 @@ public abstract class SimpleConverter<T> {
 		E result;
 		Class<?> clazz;
 		Class<?>[] interfaces;
-		for (HashMap<Class<?>, ConvertMethodWrapper> map : this.methods.values()) {
+		for (HashMap<Class<?>, List<ConvertMethodWrapper>> map : this.methods.values()) {
 			clazz = object.getClass();
 			
-			while(clazz != Object.class) {
+			while(clazz != null) {
 				if ( (result = invoke(map.get(clazz), object, destination)) != null)
 					return result;
 				
@@ -123,21 +122,27 @@ public abstract class SimpleConverter<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private final <E extends T> E invoke(ConvertMethodWrapper wrapper, Object object, Type destination) {
-		if (wrapper == null)
+	private final <E extends T> E invoke(List<ConvertMethodWrapper> wrappers, Object object, Type destination) {
+		if (wrappers == null)
 			return null;
 		
-		try {
-			if (wrapper.getParameterCount() == 2)
-				return (E) wrapper.invoke(this, object, destination);
-			else
-				return (E) wrapper.invoke(this, object);
-		} catch (InvocationTargetException e) {
-			e.getCause().printStackTrace();
-			return null;
-		} catch (IllegalAccessException e) {
-			return null;
-		}
+		for(ConvertMethodWrapper wrapper : wrappers)
+			try {				
+				if (wrapper.getParameterCount() == 2)
+					return (E) wrapper.invoke(this, object, destination);
+				else
+					return (E) wrapper.invoke(this, object);
+				
+			}
+			catch(InvocationTargetException e){
+				e.getCause().printStackTrace();
+				continue;
+			}
+			catch (IllegalAccessException | IllegalArgumentException e) {
+				continue;
+			}
+		
+		return null;
 	}
 	
 	//Setters
