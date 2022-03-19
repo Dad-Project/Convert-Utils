@@ -56,14 +56,14 @@ public abstract class SimpleConverter<T> {
 			if (method.getParameterCount() == 2) {
 				if (!canReturnInnerType)
 					throw new ConverterException("A Convert method of a SimpleConverter that return no inner type must have exactly 1 parameter.");
-				if (method.getParameterTypes()[1] != Class.class && method.getParameterTypes()[1] != ParameterizedClass.class)
+				if (method.getParameterTypes()[1] != Class.class && !ParameterizedClass.class.isAssignableFrom(method.getParameterTypes()[1]))
 					throw new ConverterException("The second parameter must be a Class or a ParameterizedClass.");
 			}
 			
 			//Ajout
 			wrapper = new ConvertMethodWrapper(method);
 			priority = -wrapper.getPriority();
-			firstParam = wrapper.getParameterTypes()[0];
+			firstParam = ReflectionUtils.toWrapper(wrapper.getParameterTypes()[0]);
 			
 			if ( (map = methods.get(priority)) == null )
 				methods.put(priority, map = new HashMap<>());
@@ -125,7 +125,7 @@ public abstract class SimpleConverter<T> {
 	private final <E extends T> E invoke(List<ConvertMethodWrapper> wrappers, Object object, Type destination) {
 		if (wrappers == null)
 			return null;
-		
+				
 		for(ConvertMethodWrapper wrapper : wrappers)
 			try {				
 				if (wrapper.getParameterCount() == 2)
