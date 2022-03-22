@@ -56,6 +56,6 @@ public class EnumConverter extends SimpleConverter<Enum>{
 			if (Objects.equals(string, ((Enum<?>)value).name()))
 				return value;
 		
-		return null;
+		throw new IllegalArgumentException("String \"" + string + "\" cannot be converted to " + destination);
 	}
 }

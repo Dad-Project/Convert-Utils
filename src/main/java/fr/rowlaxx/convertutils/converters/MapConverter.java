@@ -34,7 +34,7 @@ public class MapConverter extends SimpleConverter<Map> {
 		Map<K, V> map = (Map<K, V>) ReflectionUtils.tryInstanciate(destination.getRawType());
 		if (map == null)
 			map = new HashMap<>();
-		
+				
 		final Type keyType = destination.getActualTypeArgument(0);
 		final Type valueType = destination.getActualTypeArgument(1);
 		final Class<?> valueClass = (Class<?>)(valueType instanceof Class ? valueType : ((ParameterizedClass)valueType).getActualTypeArgument(1));

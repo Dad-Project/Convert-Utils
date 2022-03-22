@@ -78,14 +78,14 @@ public abstract class SimpleConverter<T> {
 	//Convert
 	@SuppressWarnings("unchecked")
 	public final <E extends T> E convert(Object object) {
-		return (E) convert(object, null);
+		return (E) convert(object, getDestinationClass());
 	}
 
 	@SuppressWarnings("unchecked")
 	public final <E extends T> E convert(Object object, Type destination) {
 		if (object == null)
 			return null;
-		
+				
 		if (destination == null)
 			destination = (Class<E>)getDestinationClass();
 		
@@ -100,32 +100,35 @@ public abstract class SimpleConverter<T> {
 		}
 		
 		E result;
-		Class<?> clazz;
-		Class<?>[] interfaces;
-		for (HashMap<Class<?>, List<ConvertMethodWrapper>> map : this.methods.values()) {
-			clazz = object.getClass();
-			
-			while(clazz != null) {
-				if ( (result = invoke(map.get(clazz), object, destination)) != null)
-					return result;
-				
-				interfaces = clazz.getInterfaces();
-				for (Class<?> _interface : interfaces)
-					if ( (result = invoke(map.get(_interface), object, destination)) != null)
-						return result;
-				
-				clazz = clazz.getSuperclass();
-			}
-		}
+		for (HashMap<Class<?>, List<ConvertMethodWrapper>> map : this.methods.values())
+			if ( (result = invoke(map, object.getClass(), object, destination)) != null)
+				return result;
 
-		throw new ConverterException("Unable to convert " + object.getClass() + " to " + destination);
+		throw new ConverterException("Unable to convert " + object.getClass() + " to " + destination + ".");
+	}
+	
+	private final <E extends T> E invoke(final HashMap<Class<?>, List<ConvertMethodWrapper>> map, Class<?> clazz, Object object, Type destination) {
+		E result;
+		Class<?>[] interfaces;
+		while (clazz != null) {
+			if ( (result = invoke(map.get(clazz), object, destination)) != null)
+				return result;
+			
+			interfaces = clazz.getInterfaces();
+			for (Class<?> _interface : interfaces)
+				if ( (result = invoke(map, _interface, object, destination)) != null)
+					return result;
+			
+			clazz = clazz.getSuperclass();
+		}
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")
 	private final <E extends T> E invoke(List<ConvertMethodWrapper> wrappers, Object object, Type destination) {
 		if (wrappers == null)
 			return null;
-				
+						
 		for(ConvertMethodWrapper wrapper : wrappers)
 			try {				
 				if (wrapper.getParameterCount() == 2)
@@ -135,7 +138,6 @@ public abstract class SimpleConverter<T> {
 				
 			}
 			catch(InvocationTargetException e){
-				e.getCause().printStackTrace();
 				continue;
 			}
 			catch (IllegalAccessException | IllegalArgumentException e) {

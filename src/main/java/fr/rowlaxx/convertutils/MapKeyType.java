@@ -1,5 +1,6 @@
 package fr.rowlaxx.convertutils;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -19,6 +20,19 @@ public class MapKeyType extends ParameterizedClass {
 	
 	public static final MapKeyType from(Method method) {
 		return from(method, method.getDeclaringClass());
+	}
+	
+	public static final MapKeyType from(Field field, Class<?> clazz) {
+		final MapKey mapKey = field.getAnnotation(MapKey.class);
+		if (mapKey == null)
+			throw new IllegalArgumentException("This method do not have the MapKey annotation.");
+		
+		final ParameterizedClass type = (ParameterizedClass) GenericUtils.resolve(field.getGenericType(), clazz);
+		return new MapKeyType(type.getRawType(), type.getActualTypeArguments(), mapKey.fieldName());
+	}
+	
+	public static final MapKeyType from(Field field) {
+		return from(field, field.getDeclaringClass());
 	}
 	
 	private String key;

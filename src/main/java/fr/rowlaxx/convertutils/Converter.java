@@ -46,14 +46,14 @@ public class Converter {
 	@SuppressWarnings("unchecked")
 	public <T, E extends T> E convert(Object object, Type destination) {
 		Objects.requireNonNull(destination, "destination may not be null.");
+		
 		if (object == null)
 			return null;
 		if (destination instanceof Class)
 			destination = ReflectionUtils.toWrapper((Class<?>)destination);
 		if (object.getClass() == destination)
 			return (E) object;
-		
-		
+				
 		Class<?> temp;
 		if (destination instanceof Class)	
 			temp = (Class<?>)destination;
@@ -91,6 +91,8 @@ public class Converter {
 			try {
 				return (E) ((SimpleConverter<T>)converter).convert(object, destination);
 			}catch(ConverterException e) {
+				throw e;
+			}catch(Exception e) {
 				continue;
 			}
 		
