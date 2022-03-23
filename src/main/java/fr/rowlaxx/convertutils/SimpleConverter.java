@@ -138,6 +138,7 @@ public abstract class SimpleConverter<T> {
 				
 			}
 			catch(InvocationTargetException e){
+				e.getCause().printStackTrace();
 				continue;
 			}
 			catch (IllegalAccessException | IllegalArgumentException e) {
