@@ -25,14 +25,6 @@
 		</dependency>
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<id>central</id>
-			<name>Artifactory-releases</name>
-			<url>http://box.dad-project.com:8081/artifactory/libs-release-local</url>
-		</repository>
-	</repositories>
-
 	<distributionManagement>
 		<repository>
 			<id>central</id>
