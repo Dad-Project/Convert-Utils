@@ -23,7 +23,7 @@ public class MapKeyType extends ParameterizedClass {
 	}
 	
 	public static final MapKeyType from(String key, ParameterizedClass clazz) {
-		return new MapKeyType(clazz.getOwnerType(), clazz.getActualTypeArguments(), key);
+		return new MapKeyType(clazz.getRawType(), clazz.getActualTypeArguments(), key);
 	}
 	
 	public static final MapKeyType from(Field field, Class<?> clazz) {
