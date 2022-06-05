@@ -20,6 +20,8 @@ public class EnumConverter extends SimpleConverter<Enum>{
 	
 	@ConvertMethod
 	public <T extends Enum<T>> T toEnum(String string, Class<T> destination) {
+		if (string.isEmpty())
+			return null;
 		
 		//On regarde pour l'annotation ValueMatcher
 		EnumMatcher enumMatcher;	
