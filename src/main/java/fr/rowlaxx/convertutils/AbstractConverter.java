@@ -31,8 +31,8 @@ public abstract class AbstractConverter<T> {
 		try {
 			return (E)method.invoke(this, params);
 		} catch (InvocationTargetException e) {
-			if (e.getCause() instanceof ConverterException)
-				throw (ConverterException)e.getCause();
+			if (e.getCause() instanceof RuntimeException)
+				throw (RuntimeException)e.getCause();
 			throw new ConverterException(e.getCause());
 		} catch (IllegalAccessException e) {
 			throw new ConverterException("Unable to acces the method " + method);//Should not be thrown
