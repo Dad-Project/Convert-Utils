@@ -24,19 +24,19 @@ public class ConverterFactory {
 	public static ConverterFactory newDefaultInstance() {
 		final ConverterFactory factory = new ConverterFactory();
 		
-		factory	.addSimpleConverter(new BooleanConverter())
-				.addSimpleConverter(new ByteConverter())
-				.addSimpleConverter(new ClassConverter())
-				.addSimpleConverter(new CollectionConverter())
-				.addSimpleConverter(new DoubleConverter())
-				.addSimpleConverter(new EnumConverter())
-				.addSimpleConverter(new FloatConverter())
-				.addSimpleConverter(new IntegerConverter())
-				.addSimpleConverter(new LongConverter())
-				.addSimpleConverter(new MapConverter())
-				.addSimpleConverter(new ShortConverter())
-				.addSimpleConverter(new ParameterizedClassConverter())
-				.addSimpleConverter(new StringConverter());
+		factory	.putSimpleConverter(new BooleanConverter())
+				.putSimpleConverter(new ByteConverter())
+				.putSimpleConverter(new ClassConverter())
+				.putSimpleConverter(new CollectionConverter())
+				.putSimpleConverter(new DoubleConverter())
+				.putSimpleConverter(new EnumConverter())
+				.putSimpleConverter(new FloatConverter())
+				.putSimpleConverter(new IntegerConverter())
+				.putSimpleConverter(new LongConverter())
+				.putSimpleConverter(new MapConverter())
+				.putSimpleConverter(new ParameterizedClassConverter())
+				.putSimpleConverter(new ShortConverter())
+				.putSimpleConverter(new StringConverter());
 				
 		return factory;
 	}
@@ -58,7 +58,7 @@ public class ConverterFactory {
 		}
 	}
 	
-	public ConverterFactory addSimpleConverter(SimpleConverter<?> simpleConverter) {
+	public ConverterFactory putSimpleConverter(SimpleConverter<?> simpleConverter) {
 		converter.addSimpleConverter(simpleConverter);
 		return this;
 	}

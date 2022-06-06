@@ -3,14 +3,7 @@ package fr.rowlaxx.convertutils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.sql.Ref;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
@@ -31,43 +24,6 @@ public abstract class SimpleConverter<T> {
 	
 	//Verify
 	protected abstract void initMethod(Method method);
-	
-	private void initConvertMethods() {
-		List<Method> convertMethods = ReflectionUtils.getAllMethods(getClass(), ConvertMethod.class);
-		ConvertMethodWrapper wrapper;
-		HashMap<Class<?>, List<ConvertMethodWrapper>> map;
-		List<ConvertMethodWrapper> list;
-		Class<?> firstParam;
-		int priority;
-		
-		for (Method method : convertMethods) {
-			//Vérification
-			if (method.getParameterCount() > 2)
-				throw new ConverterException("A Convert method must have a maximum of 2 parameters.");
-			if (method.getParameterCount() == 0)
-				throw new ConverterException("A Convert method must have at least 1 parameter.");
-
-			if (method.getParameterCount() == 2) {
-				if (!canReturnInnerType)
-					throw new ConverterException("A Convert method of a SimpleConverter that return no inner type must have exactly 1 parameter.");
-				if (method.getParameterTypes()[1] != Class.class && !ParameterizedClass.class.isAssignableFrom(method.getParameterTypes()[1]))
-					throw new ConverterException("The second parameter must be a Class or a ParameterizedClass.");
-			}
-			
-			//Ajout
-			wrapper = new ConvertMethodWrapper(method);
-			priority = -wrapper.getPriority();
-			firstParam = ReflectionUtils.toWrapper(wrapper.getParameterTypes()[0]);
-			
-			if ( (map = methods.get(priority)) == null )
-				methods.put(priority, map = new HashMap<>());
-							
-			if ( (list = map.get(firstParam)) == null)
-				map.put(firstParam, list = new ArrayList<>());
-			
-			list.add(wrapper);
-		}
-	}
 	
 	@SuppressWarnings("unchecked")
 	protected final <E extends T> E tryInvoke(Method method, Object... params){
