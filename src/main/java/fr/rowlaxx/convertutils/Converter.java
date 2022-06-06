@@ -40,8 +40,24 @@ public class Converter {
 		if (object == null)
 			return null;
 				
-		Class<?> temp = destination instanceof Class ? (Class<?>)destination : ((ParameterizedClass)destination).getRawType();
-		temp = ReflectionUtils.toWrapper(temp);
+		Class<?> temp = null;
+		if (destination instanceof Class) {
+			temp = (Class<?>)destination;
+			if (temp.isPrimitive()) {
+				temp = ReflectionUtils.toWrapper(temp);
+				destination = temp;
+			}
+			
+			if (object.getClass() == temp)
+				return (T)object;
+		}
+		else if (destination instanceof ParameterizedClass)
+			temp = ((ParameterizedClass)destination).getRawType();
+		else
+			throw new ConverterException("Bad type : " + destination.getClass());
+		
+		
+		
 		
 		final SimpleConverter<?> sc = simpleConverters.get(temp.getName());
 		if (sc != null)
