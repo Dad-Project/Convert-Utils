@@ -29,11 +29,11 @@ public class Converter {
 	}
 	
 	//Convert
-	public final <T, E extends T> E convert(Object object, Class<T> destination) {
+	public final <T> T convert(Object object, Class<T> destination) {
 		return convert(object, (Type)destination);
 	}
 	
-	public final <T, E extends T> E convert(Object object, Type destination) {
+	public final <T> T convert(Object object, Type destination) {
 		Objects.requireNonNull(destination, "destination may not be null.");
 
 		if (object == null)
