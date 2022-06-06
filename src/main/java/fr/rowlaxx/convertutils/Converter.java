@@ -33,6 +33,7 @@ public class Converter {
 		return convert(object, (Type)destination);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public final <T> T convert(Object object, Type destination) {
 		Objects.requireNonNull(destination, "destination may not be null.");
 
@@ -44,16 +45,16 @@ public class Converter {
 		
 		final SimpleConverter<?> sc = simpleConverters.get(temp.getName());
 		if (sc != null)
-			return sc.convert(object, destination);
+			return (T)sc.convert(object, destination);
 		
 		InnerConverter<?> ic;
 		while (temp != null) {
 			if ( (ic = innerConverters.get(temp.getName())) != null)
-				return ic.convert(object, destination);
+				return (T)ic.convert(object, destination);
 			
 			for (Class<?> _interface : temp.getInterfaces())
 				if ( (ic = innerConverters.get(_interface.getName())) != null )
-					return ic.convert(object, destination);
+					return (T)ic.convert(object, destination);
 			
 			temp = temp.getSuperclass();
 		}
