@@ -3,11 +3,14 @@ package fr.rowlaxx.convertutils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.sql.Ref;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
@@ -16,28 +19,19 @@ public abstract class SimpleConverter<T> {
 
 	//Variables
 	private Converter converter;//Will be assigned when adding to a converter
-	
 	private final Class<T> destination;
-	private final boolean canReturnInnerType;
-	private final TreeMap<Integer, HashMap<Class<?>, List<ConvertMethodWrapper>>> methods;
 
 	//Constructeurs
 	protected SimpleConverter(Class<T> destination) {
-		Objects.requireNonNull(destination, "destination may not be null.");
+		this.destination = Objects.requireNonNull(destination, "destination may not be null.");
 		
-		final Return r = getClass().getAnnotation(Return.class);
-		if (r == null)
-			throw new ConverterException("The simple converter class " + getClass() + " must implement the annotation Return.");
-
-		this.canReturnInnerType = r.canReturnInnerType();
-		this.destination = destination;
-		this.methods = new TreeMap<>();
-		
-		//Vérification
-		initConvertMethods();
+		for (Method method : ReflectionUtils.getAllMethods(getClass(), ConvertMethod.class))
+			initMethod(method);
 	}
 	
 	//Verify
+	protected abstract void initMethod(Method method);
+	
 	private void initConvertMethods() {
 		List<Method> convertMethods = ReflectionUtils.getAllMethods(getClass(), ConvertMethod.class);
 		ConvertMethodWrapper wrapper;
@@ -74,99 +68,55 @@ public abstract class SimpleConverter<T> {
 			list.add(wrapper);
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	protected final <E extends T> E tryInvoke(Method method, Object... params){
+		try {
+			return (E)method.invoke(this, params);
+		} catch (InvocationTargetException e) {
+			throw new ConverterException(e.getTargetException().getMessage());
+		} catch (IllegalAccessException e) {
+			throw new ConverterException("Unable to acces the method " + method);//Should not be thrown
+		}
+	}
 
 	//Convert
-	@SuppressWarnings("unchecked")
-	public final <E extends T> E convert(Object object) {
-		return (E) convert(object, getDestinationClass());
+	final <E extends T> E convert(Object object) {
+		return convert(object, destination);
 	}
 
-	@SuppressWarnings("unchecked")
-	public final <E extends T> E convert(Object object, Type destination) {
-		if (object == null)
-			return null;
-				
+	final <E extends T> E convert(Object object, Type destination) {		
 		if (destination == null)
-			destination = (Class<E>)getDestinationClass();
-		
-		final Class<?> temp = destination instanceof Class ? (Class<?>)destination : ((ParameterizedClass)destination).getRawType();
-		if (canReturnInnerType()) {
-			if (!getDestinationClass().isAssignableFrom(temp))
-				throw new ConverterException(destination + " do not inherit " + getDestinationClass());
-		}
+			destination = this.destination;
 		else {
-			if (temp != getDestinationClass())
-				throw new ConverterException("the destination is not " + getDestinationClass());
+			@SuppressWarnings("unchecked")
+			final Class<E> temp = (Class<E>)((destination instanceof Class) ? destination : ((ParameterizedClass)destination).getRawType());
+			if (canReturnInnerType() && !this.destination.isAssignableFrom(temp))
+				throw new ConverterException(destination + " do not inherit " + this.destination);
+			else if (this.destination != temp)
+				throw new ConverterException("the destination is not " + this.destination);
 		}
 		
-		E result;
-		for (HashMap<Class<?>, List<ConvertMethodWrapper>> map : this.methods.values())
-			if ( (result = invoke(map, object.getClass(), object, destination)) != null)
-				return result;
-
-		throw new ConverterException("Unable to convert " + object.getClass() + " to " + destination + ".");
+		return proccess(object, destination);
 	}
 	
-	private final <E extends T> E invoke(final HashMap<Class<?>, List<ConvertMethodWrapper>> map, Class<?> clazz, Object object, Type destination) {
-		E result;
-		Class<?>[] interfaces;
-		while (clazz != null) {
-			if ( (result = invoke(map.get(clazz), object, destination)) != null)
-				return result;
-			
-			interfaces = clazz.getInterfaces();
-			for (Class<?> _interface : interfaces)
-				if ( (result = invoke(map, _interface, object, destination)) != null)
-					return result;
-			
-			clazz = clazz.getSuperclass();
-		}
-		return null;
-	}
-
-	@SuppressWarnings("unchecked")
-	private final <E extends T> E invoke(List<ConvertMethodWrapper> wrappers, Object object, Type destination) {
-		if (wrappers == null)
-			return null;
-						
-		for(ConvertMethodWrapper wrapper : wrappers)
-			try {				
-				if (wrapper.getParameterCount() == 2)
-					return (E) wrapper.invoke(this, object, destination);
-				else
-					return (E) wrapper.invoke(this, object);
-				
-			}
-			catch(InvocationTargetException e){
-				e.getCause().printStackTrace();
-				continue;
-			}
-			catch (IllegalAccessException | IllegalArgumentException e) {
-				continue;
-			}
-		
-		return null;
-	}
+	protected abstract <E extends T> E proccess(Object object, Type destination);
 	
 	//Setters
-	final void setConverter(Converter converter) {
+	final void setMainConverter(Converter converter) {
+		if (this.converter != null)
+			throw new IllegalStateException("This SimpleConverter already has a Converter.");
 		this.converter = converter;
 	}
 
 	//Getters
-	public final boolean canReturnInnerType() {
-		return canReturnInnerType;
-	}
+	public abstract boolean canReturnInnerType();
 	
-	public final Converter getConverter() {
+	public final Converter mainConverter() {
 		return converter;
 	}
 	
-	public final boolean hasConverterParent() {
-		return converter != null;
-	}
-	
-	public final Class<T> getDestinationClass(){
-		return this.destination;
+	public final Class<T> destinationClass(){
+		return this.destination; 
 	}
 }
