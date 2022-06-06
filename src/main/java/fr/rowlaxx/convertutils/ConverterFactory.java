@@ -17,11 +17,11 @@ import fr.rowlaxx.convertutils.converters.StringConverter;
 public class ConverterFactory {
 
 	//Builders
-	public static ConverterFactory newInstance() {
+	public static ConverterFactory emptyBuilder() {
 		return new ConverterFactory();
 	}
 	
-	public static ConverterFactory newDefaultInstance() {
+	public static ConverterFactory defaultBuilder() {
 		final ConverterFactory factory = new ConverterFactory();
 		
 		factory	.putSimpleConverter(new BooleanConverter())
@@ -59,7 +59,7 @@ public class ConverterFactory {
 	}
 	
 	public ConverterFactory putSimpleConverter(AbstractConverter<?> simpleConverter) {
-		converter.addSimpleConverter(simpleConverter);
+		converter.putSimpleConverter(simpleConverter);
 		return this;
 	}
 }

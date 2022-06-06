@@ -1,9 +1,8 @@
 package fr.rowlaxx.convertutils;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import fr.rowlaxx.utils.ParameterizedClass;
@@ -12,90 +11,53 @@ import fr.rowlaxx.utils.ReflectionUtils;
 public class Converter {
 
 	//Variables
-	private final HashMap<Class<?>, List<AbstractConverter<?>>> converters = new HashMap<>();
+	private final Map<String, SimpleConverter<?>> simpleConverters = new HashMap<>();
+	private final Map<String, InnerConverter<?>> innerConverters = new HashMap<>();
 	
 	//Constructeurs
 	Converter(){}
 	
 	//Methodes
-	void addSimpleConverter(AbstractConverter<?> sc) {
-		Objects.requireNonNull(sc, "sc may not be null.");
+	void putSimpleConverter(AbstractConverter<?> ac) {
+		ac.setMainConverter(this);
+		final String destination = ac.destinationClass().getName();
 		
-		if (sc.hasConverterParent())
-			throw new ConverterException("This simple converter already has a parent converter.");
-		
-		List<AbstractConverter<?>> list;
-		Class<?> destination = sc.getDestinationClass();
-		
-		if ( (list = converters.get(destination)) == null )
-			converters.put(destination, list = new ArrayList<>());
-		
-		for(AbstractConverter<?> converter : list)
-			if (converter == sc)
-				return;
-		
-		sc.setConverter(this);
-		list.add(0, sc);
+		if (ac instanceof SimpleConverter)
+			this.simpleConverters.put(destination, (SimpleConverter<?>)ac);
+		else
+			this.innerConverters.put(destination, (InnerConverter<?>)ac);
 	}
 	
 	//Convert
-	public <T, E extends T> E convert(Object object, Class<T> destination) {
+	public final <T, E extends T> E convert(Object object, Class<T> destination) {
 		return convert(object, (Type)destination);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public <T, E extends T> E convert(Object object, Type destination) {
+	public final <T, E extends T> E convert(Object object, Type destination) {
 		Objects.requireNonNull(destination, "destination may not be null.");
-		
+
 		if (object == null)
 			return null;
-		if (destination instanceof Class)
-			destination = ReflectionUtils.toWrapper((Class<?>)destination);
-		if (object.getClass() == destination)
-			return (E) object;
 				
-		Class<?> temp;
-		if (destination instanceof Class)	
-			temp = (Class<?>)destination;
-		else if (destination instanceof ParameterizedClass)
-			temp = ((ParameterizedClass) destination).getRawType();
-		else
-			throw new IllegalArgumentException("Unknow type : " + destination.getClass());
-
+		Class<?> temp = destination instanceof Class ? (Class<?>)destination : ((ParameterizedClass)destination).getRawType();
+		temp = ReflectionUtils.toWrapper(temp);
 		
-		Class<?>[] interfaces;
-		E converted;
+		final SimpleConverter<?> sc = simpleConverters.get(temp.getName());
+		if (sc != null)
+			return sc.convert(object, destination);
 		
+		InnerConverter<?> ic;
 		while (temp != null) {
-			interfaces = temp.getInterfaces();
+			if ( (ic = innerConverters.get(temp.getName())) != null)
+				return ic.convert(object, destination);
 			
-			if ( (converted = processOne(object, destination, converters.get(temp))) != null)
-				return converted;
-			
-			for(Class<?> _interface : interfaces)
-				if ((converted = processOne(object, destination, converters.get(_interface))) != null)
-					return converted;
+			for (Class<?> _interface : temp.getInterfaces())
+				if ( (ic = innerConverters.get(_interface.getName())) != null )
+					return ic.convert(object, destination);
 			
 			temp = temp.getSuperclass();
 		}
 		
-		throw new ConverterException("Unable to convert " + object.getClass() + " to " + destination + " using this converter.");
-	}
-	
-	@SuppressWarnings("unchecked")
-	private static final <T, E extends T> E processOne(Object object, Type destination, List<AbstractConverter<?>> list) {
-		if (list == null)
-			return null;
-		
-		for (AbstractConverter<?> converter : list)
-			try {
-				return (E) ((AbstractConverter<T>)converter).convert(object, destination);
-			}catch(ConverterException e) {
-				throw e;
-			}catch(Exception e) {
-				continue;
-			}
-		
-		return null;
+		throw new ConverterException("No abstract converter found for converting " + object.getClass() + " to " + destination);
 	}
 }
