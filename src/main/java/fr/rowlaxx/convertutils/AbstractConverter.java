@@ -31,7 +31,7 @@ public abstract class AbstractConverter<T> {
 		try {
 			return (E)method.invoke(this, params);
 		} catch (InvocationTargetException e) {
-			throw new ConverterException(e.getTargetException().getMessage());
+			throw new ConverterException(e.getCause());
 		} catch (IllegalAccessException e) {
 			throw new ConverterException("Unable to acces the method " + method);//Should not be thrown
 		}
@@ -56,6 +56,7 @@ public abstract class AbstractConverter<T> {
 				throw new ConverterException("the destination is not " + this.destination);
 		}
 		
+		System.out.println(object.getClass() + "   " + object + "   " + destination);
 		return proccess(object, destination);
 	}
 	

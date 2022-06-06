@@ -52,13 +52,31 @@ public class Converter {
 			if ( (ic = innerConverters.get(temp.getName())) != null)
 				return (T)ic.convert(object, destination);
 			
-			for (Class<?> _interface : temp.getInterfaces())
-				if ( (ic = innerConverters.get(_interface.getName())) != null )
-					return (T)ic.convert(object, destination);
-			
-			temp = temp.getSuperclass();
+			try {
+				return proccessInterfaces(temp, object, destination);
+			}catch(UnsupportedOperationException e) {
+				temp = temp.getSuperclass();
+			}
 		}
 		
 		throw new ConverterException("No abstract converter found for converting " + object.getClass() + " to " + destination);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private final <T> T proccessInterfaces(Class<?> _interface, Object object, Type destination) {
+		InnerConverter<?> ic;
+		final Class<?>[] in = _interface.getInterfaces();
+		for (int i = 0 ; i < in.length ; i++)
+			if ( (ic = innerConverters.get(in[i].getName())) != null )
+				return (T)ic.convert(object, destination);
+		
+		for (int i = 0 ; i < in.length ; i++)
+			try {
+				return proccessInterfaces(in[i], object, destination);
+			}catch(UnsupportedOperationException e) {
+				continue;
+			}
+		
+		throw new UnsupportedOperationException();
 	}
 }
