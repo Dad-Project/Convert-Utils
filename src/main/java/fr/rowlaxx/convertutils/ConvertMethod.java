@@ -8,9 +8,4 @@ import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface ConvertMethod {
-
-	public int priority() default 0;
-	public boolean acceptInnerType() default true;
-	
-}
+public @interface ConvertMethod {}
