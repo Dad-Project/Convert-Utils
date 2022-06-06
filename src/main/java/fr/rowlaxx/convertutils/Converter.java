@@ -29,7 +29,7 @@ public class Converter {
 	}
 	
 	//Convert
-	public final <T> T convert(Object object, Class<T> destination) {
+	public final <T, E extends T> E convert(Object object, Class<T> destination) {
 		return convert(object, (Type)destination);
 	}
 	
