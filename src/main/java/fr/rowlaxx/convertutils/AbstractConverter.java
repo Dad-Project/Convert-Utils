@@ -15,8 +15,9 @@ public abstract class AbstractConverter<T> {
 	private final Class<T> destination;
 
 	//Constructeurs
+	@SuppressWarnings("unchecked")
 	protected AbstractConverter(Class<T> destination) {
-		this.destination = Objects.requireNonNull(destination, "destination may not be null.");
+		this.destination = (Class<T>) ReflectionUtils.toWrapper( Objects.requireNonNull(destination, "destination may not be null.") );
 		
 		for (Method method : ReflectionUtils.getAllMethods(getClass(), ConvertMethod.class))
 			initMethod(method);
@@ -47,8 +48,10 @@ public abstract class AbstractConverter<T> {
 		else {
 			@SuppressWarnings("unchecked")
 			final Class<E> temp = (Class<E>)((destination instanceof Class) ? destination : ((ParameterizedClass)destination).getRawType());
-			if (canReturnInnerType() && !this.destination.isAssignableFrom(temp))
-				throw new ConverterException(destination + " do not inherit " + this.destination);
+			if (canReturnInnerType() ) {
+				if (!this.destination.isAssignableFrom(temp))
+					throw new ConverterException(destination + " do not inherit " + this.destination);
+			}
 			else if (this.destination != temp)
 				throw new ConverterException("the destination is not " + this.destination);
 		}

@@ -11,7 +11,7 @@ import fr.rowlaxx.utils.ReflectionUtils;
 public class InnerConverter<T> extends AbstractConverter<T> {
 
 	//Variables
-	private final Map<String, Map<String, Method>> methods = new HashMap<>();
+	private Map<String, Map<String, Method>> methods;
 	
 	//Constructeurs
 	protected InnerConverter(Class<T> destination) {
@@ -20,15 +20,19 @@ public class InnerConverter<T> extends AbstractConverter<T> {
 
 	@Override
 	protected final void initMethod(Method method) {
+		if (methods == null)
+			methods = new HashMap<>();
+		
 		final Class<?>[] parameters = method.getParameterTypes();
 		if (parameters.length != 2)
 			throw new ConverterException("2 parameters is requiered for Method " + method);
-		if (Type.class.isAssignableFrom(parameters[1]))
-			throw new ConverterException("The second parameter must be a Type.");
+		
+		if (!Type.class.isAssignableFrom(parameters[1]))
+			throw new ConverterException("The second parameter in " + method + " must be a Type.");
 		if (!destinationClass().isAssignableFrom(ReflectionUtils.toWrapper(method.getReturnType())))
 			throw new ConverterException("The return type for the Method " + method + " is not a " + destinationClass());
 		
-		final String returnType = ReflectionUtils.toWrapper(method.getReturnType()).getName();
+		final String returnType = ReflectionUtils.toWrapper(method.getReturnType()).getName() + "&&" + parameters[1].getName();
 		final String parameter = ReflectionUtils.toWrapper(parameters[0]).getName();
 		
 		Map<String, Method> m = methods.get(returnType);
@@ -50,30 +54,60 @@ public class InnerConverter<T> extends AbstractConverter<T> {
 			throw new ConverterException("Unknow type : " + destination);
 		
 		Map<String, Method> m;
-		Class<?> temp;
-		Method method;
-		
 		while (destinationClass().isAssignableFrom(dest)) {
-			m = methods.get(dest.getName());
-			
-			if (m != null) {
-				temp = object.getClass();
-				while (temp != null) {
-					if ( (method = m.get(temp.getName())) != null)
-						return tryInvoke(method, object, destination);
-					
-					for (Class<?> _interface : temp.getInterfaces() )
-						if ( (method = m.get(_interface.getName())) != null)
-							return tryInvoke(method, object, destination);
-					
-					temp = temp.getSuperclass();
+			if ( (m = methods.get(dest.getName() + "&&" + destination.getClass().getName()) ) != null)
+				try{
+					return proccess(m, object, destination);
+				}catch(UnsupportedOperationException e) {
+					continue;
 				}
-			}
+			
+			for (Class<?> _interface : dest.getInterfaces())
+				if ( (m = methods.get(_interface.getName() + "&&" + destination.getClass().getName() )) != null)
+					try{
+						return proccess(m, object, destination);
+					}catch(UnsupportedOperationException e) {
+						continue;
+					}
 			
 			dest = dest.getSuperclass();
 		}
 		
 		throw new ConverterException("Cannot convert " + object.getClass() + " to " + destination + " with this converter.");
+	}
+	
+	private final <E extends T> E proccess(Map<String, Method> map, Object object, Type destination) {
+		Class<?> temp = object.getClass();
+		Method method;
+		while (temp != null) {
+			if ( (method = map.get(temp.getName())) != null )
+				return tryInvoke(method, object, destination);
+			
+			try {
+				return proccessInterfaces(temp, map, object, destination);
+			}catch(UnsupportedOperationException e) {
+				temp = temp.getSuperclass();
+			}
+		}
+		
+		throw new UnsupportedOperationException();
+	}
+	
+	private final <E extends T> E proccessInterfaces(Class<?> _interface, Map<String, Method> map, Object object, Type destination) {
+		Method method;
+		final Class<?>[] in = _interface.getInterfaces();
+		for (int i = 0 ; i < in.length ; i++)
+			if ( (method = map.get(in[i].getName())) != null )
+				return tryInvoke(method, object, destination);
+		
+		for (int i = 0 ; i < in.length ; i++)
+			try {
+				return proccessInterfaces(in[i], map, object, destination);
+			}catch(UnsupportedOperationException e) {
+				continue;
+			}
+		
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
