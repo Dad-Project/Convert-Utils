@@ -1,12 +1,15 @@
 package fr.rowlaxx.convertutils;
 
+import java.util.concurrent.TimeUnit;
+
+
 public class Test {
 
 	public static void main(String[] args) {
-		Converter myConverter = ConverterFactory.newDefaultInstance().build();
+		Converter myConverter = ConverterFactory.defaultBuilder().build();
+	
 		
-		int clazz = myConverter.convert("987", Integer.class);
-		System.out.println(clazz);
+		System.out.println(myConverter.convert(TimeUnit.DAYS.name(), TimeUnit.class));
 	}
 
 }
