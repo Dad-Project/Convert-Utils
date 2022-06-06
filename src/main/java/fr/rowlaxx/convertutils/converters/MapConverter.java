@@ -6,15 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
+import fr.rowlaxx.convertutils.InnerSimpleConverter;
 import fr.rowlaxx.convertutils.MapKeyType;
-import fr.rowlaxx.convertutils.Return;
-import fr.rowlaxx.convertutils.SimpleConverter;
-import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
 
 @SuppressWarnings("rawtypes")
-@Return(canReturnInnerType = true)
-public class MapConverter extends SimpleConverter<Map> {
+public class MapConverter extends InnerSimpleConverter<Map> {
 
 	public MapConverter() {
 		super(Map.class);
@@ -31,26 +28,26 @@ public class MapConverter extends SimpleConverter<Map> {
 	@SuppressWarnings("unchecked")
 	@ConvertMethod
 	public <K, V> Map<K, V> toMap(Iterable<?> iterable, MapKeyType destination) throws NoSuchFieldException {
-		Map<K, V> map = (Map<K, V>) ReflectionUtils.tryInstanciate(destination.getRawType());
-		if (map == null)
-			map = new HashMap<>();
+		Map<K, V> map;
+		if (destination.getRawType() == Map.class)
+			map = new HashMap();
+		else
+			map = (Map<K, V>) ReflectionUtils.tryInstanciate(destination.getRawType());
 				
 		final Type keyType = destination.getActualTypeArgument(0);
 		final Type valueType = destination.getActualTypeArgument(1);
-		final Class<?> valueClass = (Class<?>)(valueType instanceof Class ? valueType : ((ParameterizedClass)valueType).getActualTypeArgument(1));
-		final Field keyField = ReflectionUtils.getField(destination.getKey(), valueClass);
+		final Field keyField = ReflectionUtils.getField(destination.getKey(), mainConverter().convert(keyType, Class.class));
 
 		Object rawKey;
 		K key;
 		V value;
 		for (Object o : iterable) {
-			value = getConverter().convert(o, valueType);
+			value = mainConverter().convert(o, valueType);
 			rawKey = ReflectionUtils.tryGet(keyField, value);
-			key = getConverter().convert(rawKey, keyType);
+			key = mainConverter().convert(rawKey, keyType);
 			map.put(key, value);
 		}
 		
 		return map;
-			
 	}
 }

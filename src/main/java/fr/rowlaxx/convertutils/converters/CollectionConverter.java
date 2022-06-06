@@ -8,15 +8,13 @@ import java.util.List;
 import java.util.Set;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.Return;
-import fr.rowlaxx.convertutils.SimpleConverter;
+import fr.rowlaxx.convertutils.InnerSimpleConverter;
 import fr.rowlaxx.utils.IterableArray;
 import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
 
 @SuppressWarnings("rawtypes")
-@Return(canReturnInnerType = true)
-public class CollectionConverter extends SimpleConverter<Collection> {
+public class CollectionConverter extends InnerSimpleConverter<Collection> {
 
 	public CollectionConverter() {
 		super(Collection.class);
@@ -31,13 +29,12 @@ public class CollectionConverter extends SimpleConverter<Collection> {
 	@ConvertMethod
 	public <T> Collection<T> toCollection(Iterable<T> iterable, Class<? extends Collection> destination){		
 		Collection<T> collection;
-		
 		if (destination == List.class)
 			collection = new ArrayList<T>();
-		if (destination == Set.class)
+		else if (destination == Set.class)
 			collection = new HashSet<T>();
-		
-		collection = ReflectionUtils.tryInstanciate(destination);
+		else 
+			collection = ReflectionUtils.tryInstanciate(destination);
 		
 		for (T e : iterable)
 			collection.add(e);
@@ -57,21 +54,14 @@ public class CollectionConverter extends SimpleConverter<Collection> {
 		
 		if (clazz.getRawType() == List.class)
 			collection = new ArrayList<T>();
-		if (clazz.getRawType() == Set.class)
+		else if (clazz.getRawType() == Set.class)
 			collection = new HashSet<T>();
+		else
+			collection = (Collection<T>) ReflectionUtils.tryInstanciate(clazz.getRawType());
 		
 		Type type = clazz.getActualTypeArgument(0);
-		collection = (Collection<T>) ReflectionUtils.tryInstanciate(clazz.getRawType());
-		if (collection == null)
-			if (clazz.getRawType() == List.class)
-				collection = new ArrayList<>();
-			else if (clazz.getRawType() == Set.class)
-				collection = new HashSet<>();
-			else 
-				throw new IllegalStateException("Unknow type " + clazz.getRawType());
-		
 		for (Object p : iterable)
-			collection.add( (T) getConverter().convert(p, type) );
+			collection.add( (T) mainConverter().convert(p, type) );
 		
 		return collection;
 	}
