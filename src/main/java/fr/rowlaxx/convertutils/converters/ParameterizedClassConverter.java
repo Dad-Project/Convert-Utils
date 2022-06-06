@@ -1,12 +1,10 @@
 package fr.rowlaxx.convertutils.converters;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.Return;
-import fr.rowlaxx.convertutils.SimpleConverter;
+import fr.rowlaxx.convertutils.StrictSimpleConverter;
 import fr.rowlaxx.utils.ParameterizedClass;
 
-@Return(canReturnInnerType = false)
-public class ParameterizedClassConverter extends SimpleConverter<ParameterizedClass> {
+public class ParameterizedClassConverter extends StrictSimpleConverter<ParameterizedClass> {
 
 	//Constructeurs
 	public ParameterizedClassConverter() {
@@ -18,5 +16,4 @@ public class ParameterizedClassConverter extends SimpleConverter<ParameterizedCl
 	public ParameterizedClass toParameterizedClass(String str) throws ClassNotFoundException {
 		return ParameterizedClass.from(str);
 	}
-
 }

@@ -4,11 +4,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.Return;
-import fr.rowlaxx.convertutils.SimpleConverter;
+import fr.rowlaxx.convertutils.StrictSimpleConverter;
 
-@Return(canReturnInnerType = false)
-public class ShortConverter extends SimpleConverter<Short> {
+public class ShortConverter extends StrictSimpleConverter<Short> {
 
 	public ShortConverter() {
 		super(Short.class);

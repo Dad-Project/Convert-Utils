@@ -4,11 +4,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.Return;
-import fr.rowlaxx.convertutils.SimpleConverter;
+import fr.rowlaxx.convertutils.StrictSimpleConverter;
 
-@Return(canReturnInnerType = false)
-public class DoubleConverter extends SimpleConverter<Double> {
+public class DoubleConverter extends StrictSimpleConverter<Double> {
 
 	public DoubleConverter() {
 		super(Double.class);

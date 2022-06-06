@@ -1,11 +1,9 @@
 package fr.rowlaxx.convertutils.converters;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.Return;
-import fr.rowlaxx.convertutils.SimpleConverter;
+import fr.rowlaxx.convertutils.StrictSimpleConverter;
 
-@Return(canReturnInnerType = false)
-public class BooleanConverter extends SimpleConverter<Boolean> {
+public class BooleanConverter extends StrictSimpleConverter<Boolean> {
 
 	public BooleanConverter() {
 		super(Boolean.class);
@@ -17,65 +15,32 @@ public class BooleanConverter extends SimpleConverter<Boolean> {
 	}
 	
 	@ConvertMethod
-	public Boolean toBoolean(int b) {
-		if (b == 0)
-			return false;
-		if (b == 1)
-			return true;
-		return null;
-	}
-	
-	@ConvertMethod
-	public Boolean toBoolean(byte b) {
-		if (b == 0)
-			return false;
-		if (b == 1)
-			return true;
-		return null;
+	public boolean toBoolean(byte b) {
+		return b == 1;
 	}
 
 	@ConvertMethod
-	public Boolean toBoolean(short b) {
-		if (b == 0)
-			return false;
-		if (b == 1)
-			return true;
-		return null;
+	public boolean toBoolean(short b) {
+		return b == 1;
 	}
 
 	@ConvertMethod
-	public Boolean toBoolean(long b) {
-		if (b == 0)
-			return false;
-		if (b == 1)
-			return true;
-		return null;
+	public boolean toBoolean(long b) {
+		return b == 1;
 	}
 	
 	@ConvertMethod
-	public Boolean toBoolean(char b) {
-		if (b == 'n' || b == 'N')
-			return false;
-		if (b == 'y' || b == 'Y')
-			return true;
-		return null;
+	public boolean toBoolean(char b) {
+		return b == 'Y' || b == 'y';
 	}
 
 	@ConvertMethod
-	public Boolean toBoolean(double b) {
-		if (b == 0)
-			return false;
-		if (b == 1)
-			return true;
-		return null;
+	public boolean toBoolean(double b) {
+		return b == 1;
 	}
 	
 	@ConvertMethod
-	public Boolean toBoolean(float b) {
-		if (b == 0)
-			return false;
-		if (b == 1)
-			return true;
-		return null;
+	public boolean toBoolean(float b) {
+		return b == 1;
 	}
 }
