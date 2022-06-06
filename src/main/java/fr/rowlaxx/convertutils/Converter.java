@@ -12,25 +12,25 @@ import fr.rowlaxx.utils.ReflectionUtils;
 public class Converter {
 
 	//Variables
-	private final HashMap<Class<?>, List<SimpleConverter<?>>> converters = new HashMap<>();
+	private final HashMap<Class<?>, List<AbstractConverter<?>>> converters = new HashMap<>();
 	
 	//Constructeurs
 	Converter(){}
 	
 	//Methodes
-	void addSimpleConverter(SimpleConverter<?> sc) {
+	void addSimpleConverter(AbstractConverter<?> sc) {
 		Objects.requireNonNull(sc, "sc may not be null.");
 		
 		if (sc.hasConverterParent())
 			throw new ConverterException("This simple converter already has a parent converter.");
 		
-		List<SimpleConverter<?>> list;
+		List<AbstractConverter<?>> list;
 		Class<?> destination = sc.getDestinationClass();
 		
 		if ( (list = converters.get(destination)) == null )
 			converters.put(destination, list = new ArrayList<>());
 		
-		for(SimpleConverter<?> converter : list)
+		for(AbstractConverter<?> converter : list)
 			if (converter == sc)
 				return;
 		
@@ -83,13 +83,13 @@ public class Converter {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static final <T, E extends T> E processOne(Object object, Type destination, List<SimpleConverter<?>> list) {
+	private static final <T, E extends T> E processOne(Object object, Type destination, List<AbstractConverter<?>> list) {
 		if (list == null)
 			return null;
 		
-		for (SimpleConverter<?> converter : list)
+		for (AbstractConverter<?> converter : list)
 			try {
-				return (E) ((SimpleConverter<T>)converter).convert(object, destination);
+				return (E) ((AbstractConverter<T>)converter).convert(object, destination);
 			}catch(ConverterException e) {
 				throw e;
 			}catch(Exception e) {

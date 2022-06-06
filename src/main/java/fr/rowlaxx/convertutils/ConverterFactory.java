@@ -58,7 +58,7 @@ public class ConverterFactory {
 		}
 	}
 	
-	public ConverterFactory putSimpleConverter(SimpleConverter<?> simpleConverter) {
+	public ConverterFactory putSimpleConverter(AbstractConverter<?> simpleConverter) {
 		converter.addSimpleConverter(simpleConverter);
 		return this;
 	}

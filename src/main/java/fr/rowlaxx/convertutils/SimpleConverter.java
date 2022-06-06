@@ -1,78 +1,55 @@
 package fr.rowlaxx.convertutils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
-import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
 
-public abstract class SimpleConverter<T> {
+public class SimpleConverter<T> extends AbstractConverter<T> {
 
 	//Variables
-	private Converter converter;//Will be assigned when adding to a converter
-	private final Class<T> destination;
-
+	private final Map<String, Method> methods = new HashMap<>();
+	
 	//Constructeurs
 	protected SimpleConverter(Class<T> destination) {
-		this.destination = Objects.requireNonNull(destination, "destination may not be null.");
-		
-		for (Method method : ReflectionUtils.getAllMethods(getClass(), ConvertMethod.class))
-			initMethod(method);
+		super(destination);
 	}
-	
-	//Verify
-	protected abstract void initMethod(Method method);
-	
+
+	@Override
+	protected final void initMethod(Method method) {
+		final Class<?>[] parameters = method.getParameterTypes();
+		if (parameters.length != 1)
+			throw new ConverterException("Only 1 parameter is requiered for Method " + method);
+		if (ReflectionUtils.toWrapper(method.getReturnType()) != destinationClass())
+			throw new ConverterException("The return type for the Method " + method + " is bad.");
+		
+		final String parameter = ReflectionUtils.toWrapper(parameters[0]).getName();
+		methods.put(parameter, method);
+	}
+
 	@SuppressWarnings("unchecked")
-	protected final <E extends T> E tryInvoke(Method method, Object... params){
-		try {
-			return (E)method.invoke(this, params);
-		} catch (InvocationTargetException e) {
-			throw new ConverterException(e.getTargetException().getMessage());
-		} catch (IllegalAccessException e) {
-			throw new ConverterException("Unable to acces the method " + method);//Should not be thrown
-		}
-	}
-
-	//Convert
-	final <E extends T> E convert(Object object) {
-		return convert(object, destination);
-	}
-
-	final <E extends T> E convert(Object object, Type destination) {		
-		if (destination == null)
-			destination = this.destination;
-		else {
-			@SuppressWarnings("unchecked")
-			final Class<E> temp = (Class<E>)((destination instanceof Class) ? destination : ((ParameterizedClass)destination).getRawType());
-			if (canReturnInnerType() && !this.destination.isAssignableFrom(temp))
-				throw new ConverterException(destination + " do not inherit " + this.destination);
-			else if (this.destination != temp)
-				throw new ConverterException("the destination is not " + this.destination);
+	@Override
+	protected final T proccess(Object object, Type destination) {
+		Class<?> clazz = object.getClass();
+		Method method;
+		while (clazz != null) {
+			if ( (method = methods.get(clazz.getName())) != null)
+				return tryInvoke(method, object);
+			
+			for (Class<?> _interface : clazz.getInterfaces() )
+				if ( (method = methods.get(_interface.getName())) != null)
+					return tryInvoke(method, object);
+			
+			clazz = clazz.getSuperclass();
 		}
 		
-		return proccess(object, destination);
-	}
-	
-	protected abstract <E extends T> E proccess(Object object, Type destination);
-	
-	//Setters
-	final void setMainConverter(Converter converter) {
-		if (this.converter != null)
-			throw new IllegalStateException("This SimpleConverter already has a Converter.");
-		this.converter = converter;
+		throw new ConverterException("Cannot convert " + object.getClass() + " to " + destination + " with this converter.");
 	}
 
-	//Getters
-	public abstract boolean canReturnInnerType();
-	
-	public final Converter mainConverter() {
-		return converter;
-	}
-	
-	public final Class<T> destinationClass(){
-		return this.destination; 
+	@Override
+	public final boolean canReturnInnerType() {
+		return false;
 	}
 }

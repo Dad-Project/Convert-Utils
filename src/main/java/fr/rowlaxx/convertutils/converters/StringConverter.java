@@ -4,9 +4,9 @@ import java.util.Locale;
 import java.util.Objects;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.StrictSimpleConverter;
+import fr.rowlaxx.convertutils.SimpleConverter;
 
-public class StringConverter extends StrictSimpleConverter<String> {
+public class StringConverter extends SimpleConverter<String> {
 
 	//Constructeurs
 	public StringConverter() {

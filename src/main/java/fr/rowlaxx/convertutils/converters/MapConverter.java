@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.InnerSimpleConverter;
+import fr.rowlaxx.convertutils.InnerConverter;
 import fr.rowlaxx.convertutils.MapKeyType;
 import fr.rowlaxx.utils.ReflectionUtils;
 
 @SuppressWarnings("rawtypes")
-public class MapConverter extends InnerSimpleConverter<Map> {
+public class MapConverter extends InnerConverter<Map> {
 
 	public MapConverter() {
 		super(Map.class);

@@ -1,10 +1,10 @@
 package fr.rowlaxx.convertutils.converters;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.StrictSimpleConverter;
+import fr.rowlaxx.convertutils.SimpleConverter;
 import fr.rowlaxx.utils.ParameterizedClass;
 
-public class ParameterizedClassConverter extends StrictSimpleConverter<ParameterizedClass> {
+public class ParameterizedClassConverter extends SimpleConverter<ParameterizedClass> {
 
 	//Constructeurs
 	public ParameterizedClassConverter() {

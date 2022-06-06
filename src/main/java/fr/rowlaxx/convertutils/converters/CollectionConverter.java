@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.Set;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.InnerSimpleConverter;
+import fr.rowlaxx.convertutils.InnerConverter;
 import fr.rowlaxx.utils.IterableArray;
 import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
 
 @SuppressWarnings("rawtypes")
-public class CollectionConverter extends InnerSimpleConverter<Collection> {
+public class CollectionConverter extends InnerConverter<Collection> {
 
 	public CollectionConverter() {
 		super(Collection.class);

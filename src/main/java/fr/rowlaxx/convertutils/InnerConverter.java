@@ -8,13 +8,13 @@ import java.util.Map;
 import fr.rowlaxx.utils.ParameterizedClass;
 import fr.rowlaxx.utils.ReflectionUtils;
 
-public class InnerSimpleConverter<T> extends SimpleConverter<T> {
+public class InnerConverter<T> extends AbstractConverter<T> {
 
 	//Variables
 	private final Map<String, Map<String, Method>> methods = new HashMap<>();
 	
 	//Constructeurs
-	protected InnerSimpleConverter(Class<T> destination) {
+	protected InnerConverter(Class<T> destination) {
 		super(destination);
 	}
 

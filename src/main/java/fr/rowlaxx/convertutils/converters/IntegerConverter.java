@@ -4,9 +4,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.StrictSimpleConverter;
+import fr.rowlaxx.convertutils.SimpleConverter;
 
-public class IntegerConverter extends StrictSimpleConverter<Integer> {
+public class IntegerConverter extends SimpleConverter<Integer> {
 
 	public IntegerConverter() {
 		super(Integer.class);

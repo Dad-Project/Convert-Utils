@@ -1,9 +1,9 @@
 package fr.rowlaxx.convertutils.converters;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.StrictSimpleConverter;
+import fr.rowlaxx.convertutils.SimpleConverter;
 
-public class BooleanConverter extends StrictSimpleConverter<Boolean> {
+public class BooleanConverter extends SimpleConverter<Boolean> {
 
 	public BooleanConverter() {
 		super(Boolean.class);

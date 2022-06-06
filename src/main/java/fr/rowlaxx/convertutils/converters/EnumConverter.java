@@ -4,12 +4,12 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 
 import fr.rowlaxx.convertutils.ConvertMethod;
-import fr.rowlaxx.convertutils.InnerSimpleConverter;
+import fr.rowlaxx.convertutils.InnerConverter;
 import fr.rowlaxx.convertutils.annotations.EnumMatcher;
 import fr.rowlaxx.utils.ReflectionUtils;
 
 @SuppressWarnings("rawtypes")
-public class EnumConverter extends InnerSimpleConverter<Enum>{
+public class EnumConverter extends InnerConverter<Enum>{
 	
 	//Constructeurs
 	public EnumConverter() {
