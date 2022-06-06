@@ -36,7 +36,8 @@ public class MapConverter extends InnerConverter<Map> {
 				
 		final Type keyType = destination.getActualTypeArgument(0);
 		final Type valueType = destination.getActualTypeArgument(1);
-		final Field keyField = ReflectionUtils.getField(destination.getKey(), mainConverter().convert(keyType, Class.class));
+		final Class<?> valueClass = mainConverter().convert(valueType, Class.class);
+		final Field keyField = ReflectionUtils.getField(destination.getKey(), valueClass);
 
 		Object rawKey;
 		K key;
