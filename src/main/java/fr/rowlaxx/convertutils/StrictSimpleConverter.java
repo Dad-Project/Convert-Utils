@@ -29,8 +29,9 @@ public class StrictSimpleConverter<T> extends SimpleConverter<T> {
 		methods.put(parameter, method);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected final <E extends T> E proccess(Object object, Type destination) {
+	protected final T proccess(Object object, Type destination) {
 		Class<?> clazz = object.getClass();
 		Method method;
 		while (clazz != null) {
